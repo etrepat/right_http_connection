@@ -22,12 +22,12 @@
 #
 #
 
-# Net::HTTP and Net::HTTPGenericRequest fixes to support 100-continue on 
+# Net::HTTP and Net::HTTPGenericRequest fixes to support 100-continue on
 # POST and PUT. The request must have 'expect' field set to '100-continue'.
 
 
 module Net
-  
+
   class BufferedIO #:nodoc:
     # Monkey-patch Net::BufferedIO to read > 1024 bytes from the socket at a time
 
@@ -95,7 +95,7 @@ module Net
       delete 'Transfer-Encoding'
       supply_default_content_type
       write_header(sock, ver, path) unless send_only == :body
-      sock.write(body)              unless send_only == :header
+      sock.write(body.to_s)         unless send_only == :header
     end
 
     def send_request_with_body_stream(sock, ver, path, f, send_only=nil)
@@ -108,21 +108,21 @@ module Net
       unless send_only == :header
         if chunked?
           while s = f.read(@@local_read_size)
-            sock.write(sprintf("%x\r\n", s.length) << s << "\r\n")
+            sock.write(sprintf("%x\r\n", s.length) << s.to_s << "\r\n")
           end
           sock.write "0\r\n\r\n"
         else
           while s = f.read(@@local_read_size)
-            sock.write s
+            sock.write s.to_s
           end
         end
       end
-    end    
+    end
   end
 
 
   #-- Net::HTTP --
-  
+
   class HTTP
     def request(req, body = nil, &block)  # :yield: +response+
       unless started?
@@ -158,3 +158,4 @@ module Net
   end
 
 end
+
